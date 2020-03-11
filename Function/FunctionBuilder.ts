@@ -2,6 +2,17 @@ import { FunctionObj } from './FunctionObj'
 import { Config } from "../Config";
 import {Utils} from "../Util";
 
+
+/**
+ * Class FunctionBuilder
+ *
+ * fields:
+ *      usedQuestionFuncs - an array which contains of existing question functions
+ *      usedCorrectFuncs - an array which contains of existing correct functions
+ *      usedIncorrectFuncs - an array which contains of existing incorrect functions
+ *
+ *      functionLength -
+ * */
 export class FunctionBuilder {
     private usedQuestionFuncs = Array<FunctionObj>();
     private usedCorrectFuncs = Array<FunctionObj>();
@@ -17,6 +28,8 @@ export class FunctionBuilder {
     //------------------------------------
     // Builder properties
     //------------------------------------
+
+    // Resets all class fields to their default values
     reset() {
         this.usedQuestionFuncs = Array<FunctionObj>();
         this.usedCorrectFuncs = Array<FunctionObj>();
@@ -30,6 +43,7 @@ export class FunctionBuilder {
         this.flipOnAxis = false;
     }
 
+    // Sets a new value of function length
     setLength(length: number) {
         if (length < 0 || length > Config.Limits.defaultLength)
             throw Error('Parameter <functionLength> must be in [0,' + Config.Limits.defaultLength + '].');
@@ -41,6 +55,7 @@ export class FunctionBuilder {
         return this;
     }
 
+    // Sets a set of allowed axes
     setAllowedAxes(axises: Array<string>) {
         if (axises.length <= 0) throw Error("Available axes array cant be empty!");
 
@@ -48,75 +63,70 @@ export class FunctionBuilder {
         this.useAllowedAxes = true;
     }
 
-    // Specify builder to use only axes listed in config file.
+    // Specifies builder to use only those axes that are listed in config file
     disableAllowedAxes() {
         this.useAllowedAxes = false;
     }
 
-    // Specify builder to use only listed in allowedAxes axes.
+    // Specifies builder to use only those axes that are listed in allowedAxes
     enableAllowedAxes() {
         this.useAllowedAxes = true;
     }
 
+    // Return a copy of a set of allowedAxes
     getAllowedAxes(): Array<string> {
         return this.allowedAxes.copy();
     }
 
+    // Resets field allowedAxes to its default value
     resetAllowedAxes() {
         this.allowedAxes = Config.getAxesCopy();
     }
 
-    // Specify builder to duplicate check by sign.
+    // Disallows builder to create functions which have identical text description
     disableDuplicateText() {
         this.allowDuplicateText = false;
     }
 
-    // Specify builder to duplicate check by text.
+    // Allows builder to create functions which have identical text description
     enableDuplicateText() {
         this.allowDuplicateText = true;
     }
 
-    // Specify builder to NOT snap end of function (maybe start too in future).
+    // Disallows builder to snap an end and a start of function to a grid note
     disableSnap() {
         this.useSnap = false;
     }
 
-    // Specify builder to snap end of function (maybe start too in future).
+    // Allows builder to snap an end and a start of function to a grid note
     enableSnap() {
         this.useSnap = true;
     }
 
+    // Allows builder to flip function about coordinate axis
     enableAxisFlip(){
         this.flipOnAxis = true;
     }
 
+    // Disallows builder to flip function about coordinate axis
     disableAxisFlip(){
         this.flipOnAxis = false;
     }
+
+
     //------------------------------------
     // Methods that returns functions
     //------------------------------------
 
-    // Actually this is simply a func with duplicate managment. not a 'question' func.
-    getQuestionFunction(axes: Array<string> = []): FunctionObj {
-        const savedAxes = this.getAllowedAxes();
-        const savedState = this.useAllowedAxes;
-
-        // trick to use specefied in arguments axes list
-        if (axes.length > 0) {
-            this.useAllowedAxes = true;
-            this.allowedAxes = axes;
-        }
-
+    // Return a new function object
+    getQuestionFunction(): FunctionObj {
         const questionObject = this.createQuestionFunction();
         this.usedQuestionFuncs.push(questionObject);
 
-        // restore back
-        this.allowedAxes = savedAxes;
-        this.useAllowedAxes = savedState;
         return questionObject;
     }
 
+    // Return a new correct function
     getCorrectFunction(questionObj: FunctionObj): FunctionObj {
         const correctFunction = this.createCorrectFunction(questionObj);
         this.usedCorrectFuncs.push(correctFunction);
@@ -124,6 +134,7 @@ export class FunctionBuilder {
         return correctFunction;
     }
 
+    // Return a new incorrect function
     getIncorrectFunction(questionObj: FunctionObj): FunctionObj {
         const incorrectFunction = this.createIncorrectFunction(questionObj);
         this.usedIncorrectFuncs.push(incorrectFunction);
@@ -131,6 +142,7 @@ export class FunctionBuilder {
         return incorrectFunction;
     }
 
+    // Return a new complex function
     getComplexFunction(functionsLengths: Array<number>): Array<FunctionObj> {
         return this.createComplexFunction(functionsLengths);
     }
@@ -139,6 +151,8 @@ export class FunctionBuilder {
     //------------------------------------
     // Methods that creates functions
     //------------------------------------
+
+    // Creates a new question function
     private createQuestionFunction(recursive_count = 1): FunctionObj {
         if (recursive_count > 100) throw Error('Too many recursive calls');
 
@@ -157,6 +171,7 @@ export class FunctionBuilder {
         return questionFunc;
     }
 
+    // Creates a new correct function
     private createCorrectFunction(questionObj: FunctionObj, recursive_count = 1): FunctionObj {
         if (recursive_count > 150) throw Error('Too many recursive calls');
 
@@ -175,17 +190,18 @@ export class FunctionBuilder {
         correctFunc.params.len = this.functionLength;
 
 
+        // Check if new incorrect function is equal to some of already existing by sign
         for (const usedCorrectFunc of this.usedCorrectFuncs)
             if (correctFunc.comparisons.equalBySignTo(usedCorrectFunc))
                 return this.createCorrectFunction(questionObj, ++recursive_count);
 
+        // Check if new incorrect function is equal to some of already existing by text
         if(!this.allowDuplicateText)
             for (const usedCorrectFunc of this.usedCorrectFuncs)
                 if (correctFunc.comparisons.equalByTextTo(usedCorrectFunc))
                      return this.createCorrectFunction(questionObj, ++recursive_count);
 
-
-        // snapEnd affects function what should not be affected
+        // Snaps function end to a grid node
         if (this.useSnap)
             correctFunc.behaviour.snapEnd();
 
@@ -195,7 +211,7 @@ export class FunctionBuilder {
         return correctFunc;
     }
 
-
+    // Creates a new incorrect function
     private createIncorrectFunction(questionObj: FunctionObj, recursive_count = 1): FunctionObj {
         if (recursive_count > 250) throw Error('Too many recursive calls');
 
@@ -210,11 +226,12 @@ export class FunctionBuilder {
         incorrectFunc = new FunctionObj(pickedAxis, params).clearParams().makeIncorrectParams().clearParams();
         incorrectFunc.params.len = this.functionLength;
 
+        // Check if new incorrect function is equal to some of already existing by sign
         for (const func of this.usedIncorrectFuncs)
             if (incorrectFunc.comparisons.equalBySignTo(func))
                 return this.createIncorrectFunction(questionObj, ++recursive_count);
 
-        // snapEnd affects function what should not be affected
+        // Snaps function end to a grid node
         if (this.useSnap)
             incorrectFunc.behaviour.snapEnd();
 
@@ -223,12 +240,14 @@ export class FunctionBuilder {
         return incorrectFunc;
     }
 
+    // Creates a new compelx function
     private createComplexFunction(funcsLengths: Array<number>) {
         const defaultLength = Config.Limits.defaultLength,
             savedLength = this.functionLength,
             complexFunc = Array<FunctionObj>();
         let cumLength = 0;
 
+        // Check if sum of function length are equal to default length listed in config
         for (const length of funcsLengths)
             cumLength += length;
         if (cumLength > defaultLength)
@@ -248,6 +267,7 @@ export class FunctionBuilder {
         return complexFunc;
     }
 
+    // Connects the gap between two points of a function
     private static connectingLine(prevFunc: FunctionObj, lineLen: number){
         const startY = prevFunc.values.calcFinalValue(),
             endY = -startY,
@@ -259,6 +279,7 @@ export class FunctionBuilder {
         return line;
     }
 
+    // Creates a next part of function for a given one
     private createNextFunction(prevFunc: FunctionObj,
                                nextFuncLen = this.functionLength,  recursive_count: number = 1): FunctionObj {
         if (recursive_count > 30) throw new Error('Too many recursive calls');

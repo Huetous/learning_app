@@ -1,5 +1,6 @@
 import {Config} from "./Config";
 
+
 declare global {
     interface Number {
         toFloor(): number;

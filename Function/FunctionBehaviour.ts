@@ -1,6 +1,8 @@
 import {FunctionObj} from "./FunctionObj";
 import {Config} from "../Config";
 
+
+// Provides methods to control function behaviour at start, at end and in middle of a segment
 export class FunctionBehaviour {
 
     private _functionObj: FunctionObj;
@@ -9,7 +11,7 @@ export class FunctionBehaviour {
         this._functionObj = functionObject;
     }
 
-    // Changes the parameters of the this function such as it ENDS at the grid note
+    // Changes the parameters of the this functionObj such as it ENDS at the grid note
     snapEnd(): FunctionBehaviour {
         const funcObj = this._functionObj,
             funcType = funcObj.funcType,
@@ -21,10 +23,11 @@ export class FunctionBehaviour {
             value = funcObj.values.calcFinalValue();
         let result = 0;
 
+        // Ending point of function must not be going higher than upper limit
         if (value !== 0)
             result = Math.round(Math.min(Math.abs(value), Config.Limits.upperLimit)) * Math.sign(value);
 
-
+        // Calculates new parameters of function which satisfies an ending point
         switch (funcType) {
             case "x":
                 if (V !== 0 && A !== 0) {
@@ -57,7 +60,7 @@ export class FunctionBehaviour {
         return this;
     }
 
-    // Changes the parameters of the this function such as it STARTS at the grid note
+    // Changes the parameters of the this functionObj such as it STARTS at the grid note
     snapBegin(): FunctionBehaviour {
         const funcObj = this._functionObj,
             funcType = funcObj.funcType,
@@ -78,7 +81,8 @@ export class FunctionBehaviour {
             E: number,
             C: number,
             MaxValue: number;
-        // Function value at start (S) and end (E) of segment
+
+        // Function value at a start (S) and at an end (E) of segment
         S = funcObj.values.calcFinalValue(start);
         E = funcObj.values.calcFinalValue(end);
 
