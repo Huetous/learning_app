@@ -19,6 +19,7 @@ Directory / Директория
 
 
 More details
+
 Function directory.
 - FunctionBehaviour - class that allows to control function behaviour (eg to change function parameters so that it starts, or ends
 at grid node)
