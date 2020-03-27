@@ -10,7 +10,7 @@ This repository is part of the implementation of my thesis on developing the ser
 
 ***Заметка: далее под терминином "function" следует понимать график функции, под термином "task" следует понимать тестовое задание (к примеру, "подберите пару графику")
 
-Directory / Директория
+### Directory / Директория
 ------------
 
       Functions/           Main classes for creating functions
@@ -18,7 +18,7 @@ Directory / Директория
       Utils                Additional methods
 
 
-# More details
+### More details
 
 Function directory.
 - FunctionBehaviour - class that allows to control function behaviour (eg to change function parameters so that it starts, or ends
