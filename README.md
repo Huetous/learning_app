@@ -34,3 +34,4 @@ Tasks directory.
 
 Utils - additional methods for classes Number and Array, for the purpose of convenience.
 
+![alt text](pics/1.jpg)
