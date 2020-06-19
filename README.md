@@ -34,4 +34,4 @@ Tasks directory.
 
 Utils - additional methods for classes Number and Array, for the purpose of convenience.
 
-<img src="https://github.com/1.jpg" width="48">
+![test image size](1.jpg){:height="700px" width="400px"}
